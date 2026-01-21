@@ -6,8 +6,12 @@
     "save": "Save & Close",
     "cancel": "Cancel",
     "confirm": "Confirm",
+    "close": "Close",
     "loading": "Loading...",
     "generating": "Generating...",
+    "summarizing": "Generating session summary...",
+    "summaryTitle": "Session Summary",
+    "aiGenerated": "AI Generated",
     "expanding": "Expanding Idea...",
     "active": "Active",
     "signin": "SIGN IN",
@@ -36,6 +40,7 @@
     "lines": "LINES",
     "dots": "DOTS",
     "map": "MAP",
+    "summary": "SUMMARY",
     "export": "EXPORT"
   },
   "settings": {
@@ -71,6 +76,7 @@
     "contextPath": "Thinking Context Path",
     "selectedNode": "Current Selected Node",
     "newRequirement": "User Follow-up/New Requirement",
-    "deepDivePrompt": "Please provide a deep and detailed analysis of 【{topic}】. Requirements:\n1. Clear structure, including background, core principles, key elements, and practical applications.\n2. Professional yet easy-to-understand language.\n3. Total length around 300-500 words.\n4. Output the body text directly, do not use JSON format, and do not include any opening or closing remarks."
+    "deepDivePrompt": "Please provide a deep and detailed analysis of 【{topic}】. Requirements:\n1. Clear structure, including background, core principles, key elements, and practical applications.\n2. Professional yet easy-to-understand language.\n3. Total length around 300-500 words.\n4. Output the body text directly, do not use JSON format, and do not include any opening or closing remarks.",
+    "summaryPrompt": "You are a thinking summary expert. Please generate a structured summary based on the provided mind map node information (including the core idea and all branched sub-ideas).\n\nNode data:\n{nodes}\n\nRequirements:\n1. Extract the core theme and its underlying logic.\n2. Summarize several main dimensions or branch directions.\n3. Conclude with final insights or conclusions.\n4. Language should be concise, professional, and inspiring.\n5. Output the summary content directly, do not use JSON format, and do not include any opening remarks."
   }
 }

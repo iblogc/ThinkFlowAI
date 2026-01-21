@@ -119,6 +119,9 @@ const focusedNodeId = ref<string | null>(null)
 const draggingNodeId = ref<string | null>(null)
 const previewImageUrl = ref<string | null>(null)
 const showResetConfirm = ref(false)
+const showSummaryModal = ref(false)
+const isSummarizing = ref(false)
+const summaryContent = ref('')
 
 // 画布控制状态
 const panOnDrag = ref(true)
@@ -350,6 +353,58 @@ const exportMarkdown = () => {
     link.href = url
     link.click()
     URL.revokeObjectURL(url)
+}
+
+/**
+ * 生成全篇总结
+ */
+const generateSummary = async () => {
+    if (flowNodes.value.length === 0) return
+
+    showSummaryModal.value = true
+    isSummarizing.value = true
+    summaryContent.value = ''
+
+    // 收集所有节点信息
+    const nodesInfo = flowNodes.value.map(n => ({
+        label: n.data.label,
+        description: n.data.description,
+        type: n.data.type
+    }))
+
+    const useConfig = apiConfig.mode === 'default' ? DEFAULT_CONFIG.chat : apiConfig.chat
+    const finalApiKey = apiConfig.mode === 'default' ? useConfig.apiKey || API_KEY : useConfig.apiKey
+
+    try {
+        const response = await fetch(useConfig.baseUrl, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${finalApiKey}`
+            },
+            body: JSON.stringify({
+                model: useConfig.model,
+                messages: [
+                    { 
+                        role: 'user', 
+                        content: t('prompts.summaryPrompt', { 
+                            nodes: JSON.stringify(nodesInfo, null, 2) 
+                        }) 
+                    }
+                ]
+            })
+        })
+
+        if (!response.ok) throw new Error('Summary request failed')
+        
+        const data = await response.json()
+        summaryContent.value = data.choices[0].message.content
+    } catch (error) {
+        console.error('Summary Generation Error:', error)
+        summaryContent.value = t('common.error.unknown')
+    } finally {
+        isSummarizing.value = false
+    }
 }
 
 /**
@@ -720,6 +775,12 @@ const startNewSession = () => {
 
                     <div class="h-4 w-[1px] bg-slate-100 mx-1 flex-shrink-0"></div>
 
+                    <!-- 总结功能 -->
+                    <button @click="generateSummary" class="toolbar-btn text-orange-600 hover:bg-orange-50 border-orange-100 flex-shrink-0" :title="t('nav.summary')">
+                        <Sparkles class="w-3.5 h-3.5 md:w-4 h-4" />
+                        <span>{{ t('nav.summary') }}</span>
+                    </button>
+
                     <!-- 导出选项 -->
                     <button @click="exportMarkdown" class="toolbar-btn text-indigo-600 hover:bg-indigo-50 border-indigo-100 flex-shrink-0" :title="t('nav.export')">
                         <Download class="w-3.5 h-3.5 md:w-4 h-4" />
@@ -819,6 +880,12 @@ const startNewSession = () => {
                 >
                     <Map class="w-4 h-4" />
                     <span>{{ t('nav.map') }}</span>
+                </button>
+
+                <!-- 总结功能 -->
+                <button @click="generateSummary(); isToolsExpanded = false" class="toolbar-btn text-orange-600 hover:bg-orange-50 border-orange-100" :title="t('nav.summary')">
+                    <Sparkles class="w-4 h-4" />
+                    <span>{{ t('nav.summary') }}</span>
                 </button>
 
                 <!-- 导出选项 -->
@@ -1240,6 +1307,54 @@ const startNewSession = () => {
                                     class="flex-1 px-4 py-2.5 rounded-xl bg-orange-500 text-white font-medium hover:bg-orange-600 shadow-lg shadow-orange-500/30 transition-all active:scale-95"
                                 >
                                     {{ t('common.confirm') || 'Confirm' }}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </Transition>
+
+            <!-- 全篇总结弹窗 -->
+            <Transition name="fade">
+                <div v-if="showSummaryModal" class="fixed inset-0 z-[100] flex items-center justify-center p-4">
+                    <div class="absolute inset-0 bg-slate-900/40 backdrop-blur-sm" @click="showSummaryModal = false"></div>
+                    <div class="relative bg-white rounded-3xl shadow-2xl border border-slate-100 w-full max-w-2xl overflow-hidden animate-in zoom-in duration-300">
+                        <div class="absolute top-0 left-0 right-0 h-2 bg-gradient-to-r from-orange-400 to-rose-400"></div>
+                        
+                        <div class="p-6 md:p-8">
+                            <div class="flex items-center justify-between mb-6">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-10 h-10 bg-orange-50 rounded-xl flex items-center justify-center text-orange-500">
+                                        <Sparkles class="w-5 h-5" />
+                                    </div>
+                                    <div>
+                                        <h3 class="text-xl font-black text-slate-800 tracking-tight">{{ t('common.summaryTitle') }}</h3>
+                                        <p class="text-xs text-slate-400 font-medium uppercase tracking-wider">{{ t('common.aiGenerated') }}</p>
+                                    </div>
+                                </div>
+                                <button @click="showSummaryModal = false" class="p-2 hover:bg-slate-50 rounded-full text-slate-400 transition-colors">
+                                    <X class="w-5 h-5" />
+                                </button>
+                            </div>
+
+                            <div class="relative min-h-[200px] max-h-[60vh] overflow-y-auto pr-2 custom-scrollbar">
+                                <div v-if="isSummarizing" class="absolute inset-0 flex flex-col items-center justify-center space-y-4">
+                                    <RefreshCw class="w-8 h-8 text-orange-500 animate-spin" />
+                                    <p class="text-sm font-bold text-slate-400 animate-pulse">{{ t('common.summarizing') }}</p>
+                                </div>
+                                <div v-else class="prose prose-slate max-w-none">
+                                    <div class="whitespace-pre-wrap text-slate-600 leading-relaxed text-sm md:text-base font-medium">
+                                        {{ summaryContent }}
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="mt-8 flex justify-end">
+                                <button 
+                                    @click="showSummaryModal = false"
+                                    class="px-8 py-3 bg-slate-900 text-white rounded-2xl text-xs font-black tracking-widest hover:bg-slate-800 transition-all shadow-xl shadow-slate-200 active:scale-95"
+                                >
+                                    {{ t('common.close') }}
                                 </button>
                             </div>
                         </div>
