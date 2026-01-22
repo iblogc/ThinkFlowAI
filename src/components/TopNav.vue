@@ -12,7 +12,7 @@ import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { BackgroundVariant } from '@vue-flow/background'
 
 // 图标：所有按钮与状态展示
-import { ChevronDown, ChevronUp, Download, Focus, LayoutDashboard, Menu, Sparkles, Target, X, Trash2, Globe, Settings } from 'lucide-vue-next'
+import { ChevronDown, ChevronUp, Download, Focus, LayoutDashboard, Menu, Sparkles, Target, X, Trash2, Globe, Settings, ArrowLeftRight, Map, Palette } from 'lucide-vue-next'
 
 /**
  * props：
@@ -146,6 +146,16 @@ const callAndClose = (fn: () => void) => {
                     <span>{{ props.t('nav.center') }}</span>
                 </button>
 
+                <button
+                    @click="props.config.hierarchicalDragging = !props.config.hierarchicalDragging"
+                    class="toolbar-btn flex-shrink-0"
+                    :class="props.config.hierarchicalDragging ? 'text-orange-500 bg-orange-50 border-orange-100' : 'text-slate-400 hover:text-slate-600'"
+                    :title="props.t('nav.hierarchicalDragging')"
+                >
+                    <ArrowLeftRight class="w-3.5 h-3.5 md:w-4 h-4" />
+                    <span>{{ props.t('nav.hierarchicalDragging') }}</span>
+                </button>
+
                 <div class="h-4 w-[1px] bg-slate-100 mx-1 flex-shrink-0"></div>
 
                 <button @click="props.onGenerateSummary" class="toolbar-btn text-orange-600 hover:bg-orange-50 border-orange-100 flex-shrink-0" :title="props.t('nav.summary')">
@@ -276,6 +286,16 @@ const callAndClose = (fn: () => void) => {
                     </button>
                 </div>
             </div>
+
+            <button
+                @click="props.config.hierarchicalDragging = !props.config.hierarchicalDragging"
+                class="toolbar-btn"
+                :class="props.config.hierarchicalDragging ? 'text-orange-500 bg-orange-50 border-orange-100' : 'text-slate-400 hover:text-slate-600'"
+                :title="props.t('nav.hierarchicalDragging')"
+            >
+                <ArrowLeftRight class="w-4 h-4" />
+                <span>{{ props.t('nav.hierarchicalDragging') }}</span>
+            </button>
 
             <button
                 @click="props.config.showMiniMap = !props.config.showMiniMap"

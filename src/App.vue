@@ -311,6 +311,7 @@ body {
 
 .vue-flow__minimap {
     @apply !bg-white/80 !backdrop-blur-md !border-slate-200 !shadow-2xl !rounded-xl !overflow-hidden !transition-all;
+    display: none !important;
     bottom: 130px !important;
     right: 1rem !important;
     width: 140px !important;
@@ -326,6 +327,7 @@ body {
 
 @media (min-width: 768px) {
     .vue-flow__minimap {
+        display: block !important;
         bottom: 1.5rem !important;
         right: 1.5rem !important;
         width: 220px !important;
