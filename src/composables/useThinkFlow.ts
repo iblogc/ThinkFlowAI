@@ -390,7 +390,7 @@ export function useThinkFlow({ t, locale }: { t: Translate; locale: Ref<string> 
                   backgroundVariant: BackgroundVariant.Lines,
                   showControls: true,
                   showMiniMap: true,
-                  hierarchicalDragging: true,
+                  hierarchicalDragging: false,
                   snapToGrid: true,
                   snapGrid: [16, 16] as [number, number],
                   snapToAlignment: true,
