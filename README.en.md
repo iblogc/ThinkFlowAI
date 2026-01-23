@@ -24,11 +24,15 @@
 
 ## 💡 Vision & Philosophy
 
-**ThinkFlow AI** is more than just a drawing tool; it is your **"Brain Augmentor."**
+**ThinkFlow AI** is dedicated to creating a high-efficiency workbench that transforms "ideas" into "structured graphs."
 
-In traditional mind mapping software, you often converse with the "tool," spending significant effort manually adjusting nodes and entering information. ThinkFlow AI aims to break this barrier: by deeply combining the **divergent capabilities of LLMs (Large Language Models)** with the **structural nature of visual graphs**, we enable the tool to actively participate in your thinking process.
+In traditional creation, inspiration is often fragmented and fuzzy. ThinkFlow AI redefines this process: simply input a core idea, and the application leverages the divergent power of AI to expand it into a hierarchical, interactive **Knowledge Graph**.
 
-This is a **Local-first** experimental project designed to provide ultimate privacy and responsiveness. Through AI collaboration, it transforms fuzzy inspirations into systematic knowledge graphs instantly.
+- **Modular Expansion**: Starting from core concepts, it automatically deduces and generates sub-modules, building a logically rigorous thinking network.
+- **Infinite Depth Exploration**: Every node is just a beginning. You can continue to **follow-up and expand** any branch or dive deep into professional details through the "**Deep Answer**" feature.
+- **Multidimensional Sensory Fusion**: Supports one-click **image generation** for nodes, weaving abstract logic with concrete visual imagery to achieve full-sensory knowledge internalization.
+
+This is more than just a tool; it is a local-first thinking space that grows with you.
 
 ---
 

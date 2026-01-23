@@ -1,7 +1,7 @@
 # 🧠 ThinkFlow AI
 
 <p align="center">
-  <strong>予思维以流向，赋灵感以形状：AI 驱动的本地优先思考空间</strong>
+  <strong>ThinkFlow AI 是一个轻量级“从想法到结构化图谱”的工作台</strong>
 </p>
 
 <p align="center">
@@ -20,11 +20,15 @@
 
 ## 💡 愿景与理念
 
-**ThinkFlow AI** 不仅仅是一个绘图工具，它是你的 **“脑力增幅器”**。
+**ThinkFlow AI** 致力于打造一个从“想法”到“结构化图谱”的高效工作台。
 
-在传统的思维导图软件中，你往往在与“工具”对话，耗费大量精力在手动调整节点和录入信息。而 ThinkFlow AI 旨在打破这一壁垒：我们通过将 **LLM（大语言模型）的发散性** 与 **可视化图谱的结构性** 深度结合，让工具主动参与到你的思考过程中。
+在传统创作中，灵感往往是碎片化且模糊的。ThinkFlow AI 重新定义了这一过程：你只需输入一个核心想法，应用便会利用 AI 的发散性能力将其扩展为一套层次分明、可交互浏览的**知识图谱**。
 
-这是一个 **本地优先 (Local-first)** 的实验性项目，旨在提供极致的隐私保护与响应速度，同时通过 AI 协作，将模糊的灵感瞬间转化为系统化的知识图谱。
+- **模块化扩展**：从核心概念出发，自动推演并生成子模块，构建逻辑严密的思维网络。
+- **无限深度探索**：每一个节点都不是终点。你可以针对任何分支继续**追问扩展**，或者通过“**深度回答**”功能深挖背后的专业详情。
+- **多维感知融合**：支持为节点一键生成**视觉配图**，让抽象的逻辑与具象的视觉意象交织，实现全感官的知识内化。
+
+这不仅是一个工具，更是一个能与你共同成长的本地优先思考空间。
 
 ---
 
@@ -52,7 +56,7 @@
 
 ## 🔗 在线体验
 
-立即开启你的思考之旅：[https://thinkflow-ai.lz-t.top/](https://thinkflow-ai.lz-t.top/)
+立即开启你的思考之旅：[thinkflow-ai.lz-t.top](https://thinkflow-ai.lz-t.top)
 
 ---
 
@@ -124,12 +128,12 @@ npm run dev
 export const DEFAULT_CONFIG = {
     chat: {
         baseUrl: 'https://api.your-provider.com/v1/chat/completions',
-        model: 'gpt-4o',
+        model: '',
         apiKey: 'sk-...' // 建议通过环境变量或 UI 设置界面配置，避免硬编码
     },
     image: {
         baseUrl: 'https://api.your-provider.com/v1/images/generations',
-        model: 'dall-e-3',
+        model: '',
         apiKey: 'sk-...'
     }
 }
