@@ -167,9 +167,9 @@ const fitToView = () => {
             >
                 <Background
                     :variant="config.backgroundVariant"
-                    :pattern-color="config.backgroundVariant === BackgroundVariant.Dots ? '#cbd5e1' : '#f1f5f9'"
-                    :gap="24"
-                    :size="config.backgroundVariant === BackgroundVariant.Dots ? 1 : 0.5"
+                    :pattern-color="config.backgroundVariant === BackgroundVariant.Dots ? '#94a3b8' : '#f1f5f9'"
+                    :gap="config.backgroundVariant === BackgroundVariant.Dots ? 16 : 24"
+                    :size="config.backgroundVariant === BackgroundVariant.Dots ? 1.2 : 0.5"
                 />
                 <Controls v-if="false" :show-fullscreen="false" :show-fit-view="false">
                     <ControlButton @click="toggleFullscreen" :title="isFullscreen ? t('nav.exitFullscreen') : t('nav.fullscreen')">
