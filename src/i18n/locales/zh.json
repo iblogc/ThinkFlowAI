@@ -27,6 +27,18 @@
       "retry": "重试"
     }
   },
+  "chat": {
+    "title": "与图谱对话",
+    "placeholder": "针对当前图谱提问...",
+    "send": "发送",
+    "clear": "清空对话",
+    "context": "图谱上下文",
+    "empty": "暂无消息，针对当前思维图谱提问吧..."
+  },
+  "sticky": {
+    "add": "添加便签",
+    "placeholder": "双击编辑便签内容..."
+  },
   "nav": {
     "title": "ThinkFlow AI",
     "subtitle": "思维导图 & AI 助手",

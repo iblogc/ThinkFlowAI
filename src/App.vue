@@ -30,6 +30,8 @@ import SummaryModal from './components/SummaryModal.vue'
 import TopNav from './components/TopNav.vue'
 import SideNav from './components/SideNav.vue'
 import WindowNode from './components/WindowNode.vue'
+import StickyNoteNode from './components/StickyNoteNode.vue'
+import GraphChatSidebar from './components/GraphChatSidebar.vue'
 
 // 业务层：统一的状态与动作入口
 import { useThinkFlow } from './composables/useThinkFlow'
@@ -107,7 +109,13 @@ const {
     prevPresentationNode,
     searchQuery,
     searchResults,
-    focusNode
+    focusNode,
+    showChatSidebar,
+    isChatting,
+    graphChatMessages,
+    addStickyNote,
+    sendGraphChatMessage,
+    removeNodes
 } = useThinkFlow({ t, locale })
 
 /**
@@ -207,10 +215,20 @@ const fitToView = () => {
             :onUpdateSearchQuery="val => (searchQuery = val)"
             :searchResults="searchResults"
             :onFocusNode="focusNode"
+            :onToggleChat="() => (showChatSidebar = !showChatSidebar)"
             @toggle-locale="toggleLocale"
         />
 
-        <SideNav v-if="!isPresenting" :t="t" :locale="locale" :config="config" :onFit="fitToView" :onResetLayout="resetLayout" :onCenterRoot="centerRoot" />
+        <SideNav
+            v-if="!isPresenting"
+            :t="t"
+            :locale="locale"
+            :config="config"
+            :onFit="fitToView"
+            :onResetLayout="resetLayout"
+            :onCenterRoot="centerRoot"
+            :onAddStickyNote="addStickyNote"
+        />
 
         <div class="flex-grow relative">
             <!-- 演示模式退出提示 -->
@@ -273,6 +291,10 @@ const fitToView = () => {
                         @preview="previewImageUrl = $event"
                     />
                 </template>
+
+                <template #node-sticky="{ id, data, selected }">
+                    <StickyNoteNode :id="id" :data="data" :selected="selected" :t="t" :config="config" :updateNode="updateNode" :removeNodes="removeNodes" />
+                </template>
             </VueFlow>
 
             <div class="absolute inset-0 pointer-events-none z-20">
@@ -284,6 +306,15 @@ const fitToView = () => {
             <ImagePreviewModal :url="previewImageUrl" @close="previewImageUrl = null" />
             <ResetConfirmModal :show="showResetConfirm" :t="t" @close="showResetConfirm = false" @confirm="executeReset" />
             <SummaryModal :show="showSummaryModal" :t="t" :isSummarizing="isSummarizing" :summaryContent="summaryContent" @close="showSummaryModal = false" />
+
+            <GraphChatSidebar
+                :show="showChatSidebar"
+                :t="t"
+                :isChatting="isChatting"
+                :messages="graphChatMessages"
+                :onSendMessage="sendGraphChatMessage"
+                :onClose="() => (showChatSidebar = false)"
+            />
         </div>
 
         <BottomBar

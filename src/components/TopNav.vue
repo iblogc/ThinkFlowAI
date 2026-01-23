@@ -32,7 +32,8 @@ import {
     Search,
     Zap,
     Brain,
-    Waypoints
+    Waypoints,
+    MessagesSquare
 } from 'lucide-vue-next'
 
 /**
@@ -59,6 +60,7 @@ const props = defineProps<{
     onUpdateSearchQuery: (val: string) => void
     searchResults: any[]
     onFocusNode: (id: string) => void
+    onToggleChat: () => void
 }>()
 
 const emit = defineEmits<{
@@ -235,6 +237,13 @@ const callAndClose = (fn: () => void) => {
         </div>
 
         <div class="flex items-center gap-1 md:gap-2 flex-shrink-0">
+            <button @click="props.onToggleChat" class="hidden md:flex p-1.5 md:p-2 hover:bg-orange-50 rounded-md transition-colors text-orange-500 items-center gap-1">
+                <MessagesSquare class="w-3.5 h-3.5 md:w-4 h-4" />
+                <span class="hidden md:inline text-[10px] md:text-xs font-bold">{{ props.t('chat.title') }}</span>
+            </button>
+
+            <div class="hidden md:block h-4 w-[1px] bg-slate-200 mx-1 md:mx-2 flex-shrink-0"></div>
+
             <button @click="props.onOpenSettings" class="p-1.5 md:p-2 hover:bg-slate-100 rounded-md transition-colors text-slate-400 flex items-center gap-1">
                 <Settings class="w-3.5 h-3.5 md:w-4 h-4" />
                 <span class="hidden md:inline text-[10px] md:text-xs font-bold">{{ props.t('common.settings') }}</span>

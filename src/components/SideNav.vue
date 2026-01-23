@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, ref, onMounted, onUnmounted } from 'vue'
 import { BackgroundVariant } from '@vue-flow/background'
-import { GitGraph, Map, Palette, Waypoints, Grid, Focus, LayoutDashboard, Target } from 'lucide-vue-next'
+import { GitGraph, Map, Palette, Waypoints, Grid, Focus, LayoutDashboard, Target, StickyNote } from 'lucide-vue-next'
 
 const props = defineProps<{
     t: any
@@ -10,6 +10,7 @@ const props = defineProps<{
     onFit: () => void
     onResetLayout: () => void
     onCenterRoot: () => void
+    onAddStickyNote: () => void
 }>()
 
 const isEdgeTypeMenuOpen = ref(false)
@@ -90,6 +91,14 @@ onUnmounted(() => {
             </button>
 
             <div class="h-px bg-slate-100 mx-2 my-1"></div>
+
+            <!-- 添加便签 (Hidden as per user request) -->
+            <!-- <button @click="props.onAddStickyNote" class="side-btn group text-yellow-500 hover:bg-yellow-50 border-yellow-100">
+                <StickyNote class="w-5 h-5" />
+                <span class="custom-tooltip custom-tooltip-right">{{ props.t('sticky.add') }}</span>
+            </button>
+
+            <div class="h-px bg-slate-100 mx-2 my-1"></div> -->
 
             <!-- 联动拖拽 -->
             <button

@@ -825,6 +825,130 @@ export function useThinkFlow({ t, locale }: { t: Translate; locale: Ref<string> 
     }
 
     /**
+     * 图谱对话状态
+     */
+    const showChatSidebar = ref(false)
+    const isChatting = ref(false)
+    const graphChatMessages = ref<{ role: 'user' | 'assistant'; content: string }[]>([])
+
+    /**
+     * 添加便签 (Sticky Note)
+     */
+    const addStickyNote = (pos?: { x: number; y: number }) => {
+        const id = 'sticky-' + Date.now()
+        const position =
+            pos ||
+            project({
+                x: window.innerWidth / 2 - 100,
+                y: window.innerHeight / 2 - 50
+            })
+
+        addNodes({
+            id,
+            type: 'sticky',
+            position,
+            data: {
+                label: '',
+                type: 'sticky'
+            }
+        })
+    }
+
+    /**
+     * 与图谱对话 (Chat with Graph)
+     */
+    const sendGraphChatMessage = async (userMessage: string) => {
+        if (!userMessage.trim() || isChatting.value) return
+
+        graphChatMessages.value.push({ role: 'user', content: userMessage })
+        isChatting.value = true
+
+        // 构建图谱上下文
+        const buildGraphContext = () => {
+            const nodesText = flowNodes.value
+                .map(n => {
+                    if (n.type === 'sticky') return `[Note]: ${n.data.label}`
+                    return `[Node]: ${n.data.label} - ${n.data.description || ''}`
+                })
+                .join('\n')
+            return nodesText
+        }
+
+        const graphContext = buildGraphContext()
+        const useConfig = apiConfig.mode === 'default' ? DEFAULT_CONFIG.chat : apiConfig.chat
+        const finalApiKey = apiConfig.mode === 'default' ? useConfig.apiKey || API_KEY : useConfig.apiKey
+
+        try {
+            const response = await fetch(useConfig.baseUrl, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    Authorization: `Bearer ${finalApiKey}`
+                },
+                body: JSON.stringify({
+                    model: useConfig.model,
+                    stream: true,
+                    messages: [
+                        {
+                            role: 'system',
+                            content: `You are an AI assistant helping the user explore their knowledge graph. 
+                            The current graph contains the following information:
+                            ${graphContext}
+                            
+                            Please answer the user's questions based on this context. Be concise and insightful.`
+                        },
+                        ...graphChatMessages.value
+                    ]
+                })
+            })
+
+            if (!response.ok) throw new Error('Chat request failed')
+
+            // 处理流式响应
+            const reader = response.body?.getReader()
+            if (!reader) throw new Error('ReadableStream not supported')
+
+            const decoder = new TextDecoder('utf-8')
+            let assistantMessage = ''
+
+            // 先添加一个空的 assistant 消息占位
+            graphChatMessages.value.push({ role: 'assistant', content: '' })
+            const lastIdx = graphChatMessages.value.length - 1
+
+            while (true) {
+                const { done, value } = await reader.read()
+                if (done) break
+
+                const chunk = decoder.decode(value, { stream: true })
+                const lines = chunk.split('\n')
+
+                for (const line of lines) {
+                    if (line.startsWith('data: ')) {
+                        const dataStr = line.slice(6).trim()
+                        if (dataStr === '[DONE]') break
+
+                        try {
+                            const data = JSON.parse(dataStr)
+                            const content = data.choices[0]?.delta?.content || ''
+                            if (content) {
+                                assistantMessage += content
+                                graphChatMessages.value[lastIdx].content = assistantMessage
+                            }
+                        } catch (e) {
+                            // 忽略解析错误
+                        }
+                    }
+                }
+            }
+        } catch (error: any) {
+            console.error('Graph Chat Error:', error)
+            graphChatMessages.value.push({ role: 'assistant', content: `Error: ${getErrorMessage(error)}` })
+        } finally {
+            isChatting.value = false
+        }
+    }
+
+    /**
      * 总结：基于当前所有节点信息生成一段总结文本
      * - 结果展示在 SummaryModal
      */
@@ -1284,6 +1408,12 @@ export function useThinkFlow({ t, locale }: { t: Translate; locale: Ref<string> 
         prevPresentationNode,
         searchQuery,
         searchResults,
-        focusNode
+        focusNode,
+        showChatSidebar,
+        isChatting,
+        graphChatMessages,
+        addStickyNote,
+        sendGraphChatMessage,
+        removeNodes
     }
 }

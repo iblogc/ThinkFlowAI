@@ -27,6 +27,18 @@
       "retry": "Retry"
     }
   },
+  "chat": {
+    "title": "Chat with Graph",
+    "placeholder": "Ask about the current graph...",
+    "send": "Send",
+    "clear": "Clear Chat",
+    "context": "Graph Context",
+    "empty": "No messages yet. Ask something about your mind map..."
+  },
+  "sticky": {
+    "add": "Add Sticky Note",
+    "placeholder": "Double click to edit..."
+  },
   "nav": {
     "title": "ThinkFlow AI",
     "subtitle": "Mind Map & AI Assistant",
