@@ -1142,6 +1142,7 @@ export function useThinkFlow({ t, locale }: { t: Translate; locale: Ref<string> 
                 },
                 body: JSON.stringify({
                     model: useConfig.model,
+                    stream: true,
                     messages: [
                         { role: 'system', content: aiStyle.value === 'creative' ? t('prompts.styleCreative') : t('prompts.stylePrecise') },
                         { role: 'user', content: t('prompts.deepDivePrompt', { rootTopic, context, topic, detail }) }
@@ -1154,10 +1155,47 @@ export function useThinkFlow({ t, locale }: { t: Translate; locale: Ref<string> 
                 error.status = response.status
                 throw error
             }
-            const data = await response.json()
-            const content = data.choices[0].message.content
 
-            updateNode(nodeId, { data: { ...node.data, detailedContent: content, isDeepDiving: false, error: null } })
+            const reader = response.body?.getReader()
+            const decoder = new TextDecoder()
+            if (!reader) throw new Error('Failed to get reader from response')
+
+            let fullContent = ''
+            updateNode(nodeId, { data: { ...node.data, detailedContent: '', isDeepDiving: false, error: null } })
+
+            while (true) {
+                const { done, value } = await reader.read()
+                if (done) break
+
+                const chunk = decoder.decode(value, { stream: true })
+                const lines = chunk.split('\n')
+
+                for (const line of lines) {
+                    if (line.trim() === '') continue
+                    if (line.startsWith('data: ')) {
+                        const dataStr = line.replace('data: ', '').trim()
+                        if (dataStr === '[DONE]') break
+
+                        try {
+                            const data = JSON.parse(dataStr)
+                            const content = data.choices[0]?.delta?.content || ''
+                            if (content) {
+                                fullContent += content
+                                // 实时更新节点的 detailedContent
+                                updateNode(nodeId, { data: { ...node.data, detailedContent: fullContent, isDeepDiving: false } })
+                            }
+                        } catch (e) {
+                            // 忽略部分解析错误
+                        }
+                    }
+                }
+            }
+
+            // 最后确保状态正确
+            const finalNode = flowNodes.value.find(n => n.id === nodeId)
+            if (finalNode) {
+                updateNode(nodeId, { data: { ...finalNode.data, isDeepDiving: false } })
+            }
         } catch (error: any) {
             console.error('Deep Dive Error:', error)
             updateNode(nodeId, { data: { ...node.data, isDeepDiving: false, error: getErrorMessage(error) } })
