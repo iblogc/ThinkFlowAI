@@ -1187,11 +1187,12 @@ export function useThinkFlow({ t, locale }: { t: Translate; locale: Ref<string> 
     /**
      * 将模型返回的子节点数组写入画布，并连边到 parentId
      */
-    const processSubNodes = (subNodes: any[], parentId: string, baseX: number, baseY: number) => {
+    const processSubNodes = (subNodes: any[], parentId: string, baseX: number, baseY: number, indexOffset: number = 0, total: number = 3) => {
         subNodes.forEach((item: any, index: number) => {
-            const childId = `node-${Date.now()}-${index}`
+            const actualIndex = index + indexOffset
+            const childId = `node-${Date.now()}-${actualIndex}`
             const offsetX = 450
-            const offsetY = (index - (subNodes.length - 1) / 2) * 280
+            const offsetY = (actualIndex - (total - 1) / 2) * 280
 
             addNodes({
                 id: childId,
@@ -1315,7 +1316,8 @@ export function useThinkFlow({ t, locale }: { t: Translate; locale: Ref<string> 
                         { role: 'user', content: userMessage }
                     ],
                     response_format: { type: 'json_object' },
-                    temperature: 0.8
+                    temperature: 0.8,
+                    stream: true
                 })
             })
 
@@ -1324,8 +1326,6 @@ export function useThinkFlow({ t, locale }: { t: Translate; locale: Ref<string> 
                 error.status = response.status
                 throw error
             }
-            const data = await response.json()
-            const result = JSON.parse(data.choices[0].message.content)
 
             // 如果是重新扩展已有节点，先清空其现有的所有后代节点
             if (parentNode && currentParentId) {
@@ -1336,22 +1336,89 @@ export function useThinkFlow({ t, locale }: { t: Translate; locale: Ref<string> 
             const startX = parentNodeObj ? parentNodeObj.position.x : 50
             const startY = parentNodeObj ? parentNodeObj.position.y : 300
 
-            processSubNodes(result.nodes, currentParentId, startX, startY)
+            const reader = response.body?.getReader()
+            const decoder = new TextDecoder()
+            if (!reader) throw new Error('Failed to get reader')
 
-            if (!parentNode) {
-                setTimeout(() => {
-                    const childEdges = flowEdges.value.filter(e => e.source === currentParentId)
-                    const childIds = childEdges.map(e => e.target)
+            let buffer = ''
+            let processedNodeCount = 0
+            let partialLine = ''
 
-                    const nodesToFit = [currentParentId, ...childIds]
+            // 用于存储临时解析出的节点文本，防止重复处理
+            const processedTexts = new Set<string>()
 
-                    fitView({
-                        nodes: nodesToFit,
-                        padding: 0.15, // 极小边距，使内容充满屏幕
-                        duration: 1000,
-                        maxZoom: 1.2 // 允许更大的缩放
-                    })
-                }, 100)
+            while (true) {
+                const { done, value } = await reader.read()
+                if (done) break
+
+                const chunk = decoder.decode(value, { stream: true })
+                const lines = (partialLine + chunk).split('\n')
+                partialLine = lines.pop() || ''
+
+                for (const line of lines) {
+                    if (line.trim() === '') continue
+                    if (line.startsWith('data: ')) {
+                        const dataStr = line.replace('data: ', '').trim()
+                        if (dataStr === '[DONE]') break
+
+                        try {
+                            const data = JSON.parse(dataStr)
+                            const content = data.choices[0]?.delta?.content || ''
+                            buffer += content
+
+                            // 尝试从 buffer 中提取完整的节点对象
+                            // 更加鲁棒的正则，支持转义字符和任意顺序
+                            const nodeRegex =
+                                /\{\s*"text"\s*:\s*"((?:[^"\\]|\\.)*)"\s*,\s*"description"\s*:\s*"((?:[^"\\]|\\.)*)"\s*\}|\{\s*"description"\s*:\s*"((?:[^"\\]|\\.)*)"\s*,\s*"text"\s*:\s*"((?:[^"\\]|\\.)*)"\s*\}/g
+                            let match
+
+                            while ((match = nodeRegex.exec(buffer)) !== null) {
+                                let text, description
+                                if (match[1] !== undefined) {
+                                    text = match[1]
+                                    description = match[2]
+                                } else {
+                                    description = match[3]
+                                    text = match[4]
+                                }
+
+                                // 处理转义字符
+                                text = text.replace(/\\"/g, '"').replace(/\\\\/g, '\\')
+                                description = description.replace(/\\"/g, '"').replace(/\\\\/g, '\\')
+
+                                const nodeKey = `${text}-${description}`
+
+                                if (!processedTexts.has(nodeKey)) {
+                                    processedTexts.add(nodeKey)
+
+                                    // 模拟逐个出现的节奏感，稍微延时一点点
+                                    await new Promise(resolve => setTimeout(resolve, 300))
+
+                                    const nodeData = { text, description }
+                                    processSubNodes([nodeData], currentParentId, startX, startY, processedNodeCount)
+                                    processedNodeCount++
+
+                                    // 如果是第一个子节点生成，且没有父节点（即根节点刚创建），进行一次适应视图
+                                    if (processedNodeCount === 1 && !parentNode) {
+                                        setTimeout(() => {
+                                            const childEdges = flowEdges.value.filter(e => e.source === currentParentId)
+                                            const childIds = childEdges.map(e => e.target)
+                                            const nodesToFit = [currentParentId, ...childIds]
+                                            fitView({
+                                                nodes: nodesToFit,
+                                                padding: 0.15,
+                                                duration: 1000,
+                                                maxZoom: 1.2
+                                            })
+                                        }, 100)
+                                    }
+                                }
+                            }
+                        } catch (e) {
+                            // 忽略 JSON 解析错误（流式传输中很常见）
+                        }
+                    }
+                }
             }
         } catch (error: any) {
             console.error('Expansion Error:', error)
