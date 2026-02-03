@@ -13,6 +13,10 @@
 </p>
 
 <p align="center">
+  <strong>✨ 本项目 Vibe Coding 完成，基于 Gemini 3.5 Flash</strong>
+</p>
+
+<p align="center">
   <a href="./README.en.md">English</a> | 中文
 </p>
 
